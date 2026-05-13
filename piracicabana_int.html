@@ -67,6 +67,12 @@ body::before{
   backdrop-filter:blur(12px);
 }
 
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px 18px;
+  }
+}
+
 /* animated corner brackets */
 .card::before,.card::after,
 .card .corner-br,.card .corner-tl2{
@@ -100,6 +106,12 @@ body::before{
   letter-spacing:.28em;
   text-transform:uppercase;
   animation:title-glow 3s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+  .logo-title {
+    font-size: 18px;
+  }
 }
 .logo-sub{
   font-size:9px;

@@ -408,6 +408,40 @@ svg.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;documen
 addEventListener('mousemove',e=>{if(!drag)return;tx+=e.clientX-lx;ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;apply();});
 addEventListener('mouseup',()=>{drag=false;document.body.classList.remove('grabbing');});
 svg.addEventListener('dblclick',fit);
+
+// Touch support for mobile
+let touchDrag = false, initialDist = 0, initialScale = 1;
+svg.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    touchDrag = true;
+    lx = e.touches[0].clientX;
+    ly = e.touches[0].clientY;
+    document.body.classList.add('grabbing');
+  } else if (e.touches.length === 2) {
+    touchDrag = false;
+    initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    initialScale = s;
+  }
+});
+addEventListener('touchmove', e => {
+  if (touchDrag && e.touches.length === 1) {
+    tx += e.touches[0].clientX - lx;
+    ty += e.touches[0].clientY - ly;
+    lx = e.touches[0].clientX;
+    ly = e.touches[0].clientY;
+    apply();
+  } else if (e.touches.length === 2) {
+    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const scale = initialScale * (dist / initialDist);
+    s = Math.max(0.1, Math.min(5, scale)); // Limit zoom
+    apply();
+  }
+});
+addEventListener('touchend', () => {
+  touchDrag = false;
+  document.body.classList.remove('grabbing');
+});
+
 let ld=null;
 function isUI(e) {
   return Boolean(e.target.closest('#search-panel,#nav-bar,#qr-link,#resp-card'));
