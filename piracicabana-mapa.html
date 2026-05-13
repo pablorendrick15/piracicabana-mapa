@@ -410,7 +410,7 @@ addEventListener('mouseup',()=>{drag=false;document.body.classList.remove('grabb
 svg.addEventListener('dblclick',fit);
 
 // Touch support for mobile
-let touchDrag = false, initialDist = 0, initialScale = 1;
+let touchDrag = false, initialDist = 0, initialScale = 1, initialTx = 0, initialTy = 0;
 svg.addEventListener('touchstart', e => {
   if (e.touches.length === 1) {
     touchDrag = true;
@@ -421,6 +421,8 @@ svg.addEventListener('touchstart', e => {
     touchDrag = false;
     initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     initialScale = s;
+    initialTx = tx;
+    initialTy = ty;
   }
 });
 addEventListener('touchmove', e => {
@@ -433,7 +435,11 @@ addEventListener('touchmove', e => {
   } else if (e.touches.length === 2) {
     const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     const scale = initialScale * (dist / initialDist);
-    s = Math.max(0.1, Math.min(5, scale)); // Limit zoom
+    s = Math.max(0.1, Math.min(5, scale));
+    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    tx = centerX - (centerX - initialTx) * (s / initialScale);
+    ty = centerY - (centerY - initialTy) * (s / initialScale);
     apply();
   }
 });
