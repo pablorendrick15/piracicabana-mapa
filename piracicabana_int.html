@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piracicabana - Acesso</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --green:#00ff41;
+  --green-dim:#00ff4188;
+  --green-dark:#003a0f;
+  --green-glow:rgba(0,255,65,.18);
+}
+
+html,body{
+  width:100%;height:100%;
+  background:#000;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--green);
+  overflow:hidden;
+}
+
+/* ── Scanline overlay ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(0,255,65,.025) 0px,
+    rgba(0,255,65,.025) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events:none;
+  z-index:1;
+  animation:scanlines 8s linear infinite;
+}
+@keyframes scanlines{
+  0%{background-position:0 0;}
+  100%{background-position:0 100px;}
+}
+
+/* ── Canvas background ── */
+#bg-canvas{
+  position:fixed;inset:0;
+  z-index:0;
+}
+
+/* ── Main container ── */
+.scene{
+  position:relative;z-index:2;
+  width:100%;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── Card ── */
+.card{
+  position:relative;
+  width:min(420px,92vw);
+  padding:44px 40px 36px;
+  background:rgba(0,8,2,.88);
+  border:1px solid #00ff4144;
+  backdrop-filter:blur(12px);
+}
+
+/* animated corner brackets */
+.card::before,.card::after,
+.card .corner-br,.card .corner-tl2{
+  content:'';
+  position:absolute;
+  width:18px;height:18px;
+  border-color:var(--green);
+  border-style:solid;
+  transition:width .4s,height .4s;
+}
+.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.card::after{top:-1px;right:-1px;border-width:2px 2px 0 0;}
+.card .corner-br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.card .corner-tl2{bottom:-1px;left:-1px;border-width:0 0 2px 2px;}
+.card:hover::before,.card:hover::after,
+.card:hover .corner-br,.card:hover .corner-tl2{width:28px;height:28px;}
+
+/* ── Header ── */
+.logo{
+  text-align:center;
+  margin-bottom:32px;
+}
+.logo-bus{
+  width:72px;height:40px;
+  display:block;margin:0 auto 12px;
+}
+.logo-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  animation:title-glow 3s ease-in-out infinite;
+}
+.logo-sub{
+  font-size:9px;
+  letter-spacing:.3em;
+  color:var(--green-dim);
+  text-transform:uppercase;
+  margin-top:4px;
+  animation:title-glow 3s ease-in-out infinite reverse;
+}
+@keyframes title-glow{
+  0%,100%{text-shadow:0 0 6px var(--green),0 0 20px rgba(0,255,65,.4);}
+  50%{text-shadow:0 0 12px var(--green),0 0 36px rgba(0,255,65,.7),0 0 60px rgba(0,255,65,.2);}
+}
+
+/* ── Divider ── */
+.divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--green-dim),transparent);
+  margin:0 0 28px;
+}
+
+/* ── Status bar ── */
+.status-bar{
+  display:flex;align-items:center;gap:8px;
+  font-size:10px;color:var(--green-dim);
+  letter-spacing:.1em;
+  margin-bottom:22px;
+}
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  animation:blink 1.2s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── Field ── */
+.field{
+  margin-bottom:20px;
+}
+.field-label{
+  font-size:10px;
+  letter-spacing:.15em;
+  color:var(--green-dim);
+  text-transform:uppercase;
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.field-label::after{
+  content:'';flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--green-dim),transparent);
+}
+.field-wrap{
+  position:relative;
+}
+.field-wrap input{
+  width:100%;
+  background:rgba(0,255,65,.04);
+  border:1px solid #00ff4133;
+  color:var(--green);
+  font-family:'Share Tech Mono',monospace;
+  font-size:14px;
+  padding:13px 44px 13px 14px;
+  outline:none;
+  letter-spacing:.08em;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  caret-color:var(--green);
+  border-radius:2px;
+}
+.field-wrap input::placeholder{color:#00ff4130;}
+.field-wrap input:focus{
+  border-color:var(--green);
+  background:rgba(0,255,65,.07);
+  box-shadow:0 0 0 1px rgba(0,255,65,.2),inset 0 0 12px rgba(0,255,65,.05);
+}
+.field-wrap input:focus + .field-icon{color:var(--green);}
+.field-icon{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--green-dim);
+  font-size:15px;
+  pointer-events:none;
+  transition:color .2s;
+}
+.toggle-pw{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;
+  color:var(--green-dim);font-size:15px;
+  cursor:pointer;padding:0;
+  transition:color .2s;
+}
+.toggle-pw:hover{color:var(--green);}
+
+/* typing cursor on focused input */
+.field-wrap input:focus{animation:none;}
+
+/* ── Error msg ── */
+.error-msg{
+  font-size:10px;
+  color:#ff4040;
+  letter-spacing:.1em;
+  margin-top:6px;
+  display:none;
+  animation:shake .3s ease;
+}
+.error-msg.show{display:block;}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-5px);}
+  75%{transform:translateX(5px);}
+}
+
+/* ── Button ── */
+.btn-login{
+  width:100%;
+  margin-top:8px;
+  padding:15px;
+  background:var(--green);
+  border:none;
+  color:#000;
+  font-family:'Orbitron',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  border-radius:2px;
+  transition:background .15s,box-shadow .15s;
+}
+.btn-login::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.25) 50%,transparent 100%);
+  transform:translateX(-100%);
+  transition:transform .5s;
+}
+.btn-login:hover::before{transform:translateX(100%);}
+.btn-login:hover{
+  background:#00ff41ee;
+  box-shadow:0 0 24px rgba(0,255,65,.5),0 0 8px rgba(0,255,65,.3);
+}
+.btn-login:active{transform:scale(.99);}
+.btn-login:disabled{
+  background:#00ff4144;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+.btn-login:disabled::before{display:none;}
+
+/* loading state */
+.btn-login .btn-text{display:inline-block;transition:opacity .2s;}
+.btn-login.loading .btn-text{opacity:0;}
+.btn-login .spinner{
+  position:absolute;inset:0;
+  display:none;
+  align-items:center;justify-content:center;
+  font-size:13px;
+  letter-spacing:.15em;
+}
+.btn-login.loading .spinner{display:flex;}
+
+/* ── Footer ── */
+.card-footer{
+  margin-top:24px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;
+  color:#00ff4140;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.footer-blink{animation:blink 2s step-end infinite;}
+
+/* ── Glitch on error ── */
+@keyframes glitch{
+  0%,100%{clip-path:none;transform:none;}
+  20%{clip-path:polygon(0 20%,100% 20%,100% 23%,0 23%);transform:translate(-2px,0);}
+  40%{clip-path:polygon(0 55%,100% 55%,100% 60%,0 60%);transform:translate(2px,0);}
+  60%{clip-path:polygon(0 75%,100% 75%,100% 78%,0 78%);transform:translate(-1px,0);}
+  80%{clip-path:none;transform:none;}
+}
+.glitch{animation:glitch .35s steps(1) 3;}
+
+/* ── Success flash ── */
+.card.success-flash{
+  animation:success-pulse .4s ease 2;
+}
+@keyframes success-pulse{
+  0%,100%{border-color:#00ff4144;}
+  50%{border-color:var(--green);box-shadow:0 0 40px rgba(0,255,65,.4);}
+}
+
+/* ── Road dashes animation (bus icon) ── */
+.road-dash{animation:road-move .55s linear infinite;}
+@keyframes road-move{from{transform:translateX(0);}to{transform:translateX(-28px);}}
+#title-bus-g{animation:tbus-bounce .4s ease-in-out infinite alternate;}
+@keyframes tbus-bounce{0%{transform:translateY(0);}100%{transform:translateY(-1px);}}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="scene">
+  <div class="card" id="card">
+    <div class="corner-br"></div>
+    <div class="corner-tl2"></div>
+
+    <div class="logo">
+      <!-- Mini bus SVG -->
+      <svg class="logo-bus" viewBox="0 0 72 40" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="30" width="72" height="10" fill="#0a0a0a"/>
+        <line x1="0" y1="30" x2="72" y2="30" stroke="#00ff4133" stroke-width="0.5"/>
+        <g class="road-dash">
+          <rect x="0" y="33.5" width="13" height="1.3" fill="#00ff4155"/>
+          <rect x="15" y="33.5" width="13" height="1.3" fill="#00ff4155"/>
+          <rect x="30" y="33.5" width="13" height="1.3" fill="#00ff4155"/>
+          <rect x="45" y="33.5" width="13" height="1.3" fill="#00ff4155"/>
+          <rect x="60" y="33.5" width="13" height="1.3" fill="#00ff4155"/>
+        </g>
+        <ellipse cx="36" cy="30.5" rx="26" ry="1.4" fill="#00ff41" opacity=".12"/>
+        <g id="title-bus-g">
+          <rect x="5" y="5" width="58" height="24" rx="3" fill="#d8d8d8"/>
+          <rect x="5" y="5" width="58" height="8" rx="3" fill="#cc2200"/>
+          <rect x="5" y="10" width="58" height="3" fill="#cc2200"/>
+          <rect x="5" y="15" width="58" height="5" fill="#e85c00"/>
+          <rect x="5" y="20" width="58" height="9" fill="#c8c8c8"/>
+          <rect x="57" y="5" width="8" height="24" rx="3" fill="#c0c0c0"/>
+          <rect x="57" y="5" width="8" height="8" rx="3" fill="#cc2200"/>
+          <rect x="57" y="10" width="8" height="3" fill="#cc2200"/>
+          <rect x="58" y="16" width="6" height="8" rx="1" fill="#00ff4122" stroke="#00ff4155" stroke-width="0.4"/>
+          <rect x="58" y="25" width="5" height="2.5" rx="0.8" fill="#ffffaa"/>
+          <rect x="5" y="5" width="7" height="24" rx="3" fill="#bbb"/>
+          <rect x="6" y="21" width="5" height="5" rx="0.5" fill="#ff2200" opacity=".9"/>
+          <rect x="12" y="6" width="43" height="7" rx="1" fill="#080808"/>
+          <text x="33" y="11.5" font-family="'Share Tech Mono',monospace" font-size="4" fill="#00ff41" text-anchor="middle" font-weight="bold">PIRACICABANA</text>
+          <rect x="13" y="16" width="7" height="5" rx="1" fill="#00ccff18" stroke="#00ff4144" stroke-width="0.3"/>
+          <rect x="22" y="16" width="7" height="5" rx="1" fill="#00ccff18" stroke="#00ff4144" stroke-width="0.3"/>
+          <rect x="31" y="16" width="7" height="5" rx="1" fill="#00ccff18" stroke="#00ff4444" stroke-width="0.3"/>
+          <rect x="40" y="16" width="7" height="5" rx="1" fill="#00ccff18" stroke="#00ff4144" stroke-width="0.3"/>
+          <rect x="49" y="16" width="7" height="5" rx="1" fill="#00ccff18" stroke="#00ff4144" stroke-width="0.3"/>
+          <circle cx="15" cy="30" r="5.5" fill="#1a1a1a" stroke="#00ff41" stroke-width="0.8"/>
+          <circle cx="15" cy="30" r="2" fill="#2e2e2e" stroke="#00ff41" stroke-width="0.5"/>
+          <circle cx="53" cy="30" r="5.5" fill="#1a1a1a" stroke="#00ff41" stroke-width="0.8"/>
+          <circle cx="53" cy="30" r="2" fill="#2e2e2e" stroke="#00ff41" stroke-width="0.5"/>
+        </g>
+      </svg>
+      <div class="logo-title">Piracicabana</div>
+      <div class="logo-sub">Sistema de Acesso — Plano Piloto</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span>SISTEMA OPERACIONAL</span>
+      <span style="margin-left:auto;opacity:.5" id="clock">--:--:--</span>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Usuário</div>
+      <div class="field-wrap">
+        <input type="text" id="usuario" placeholder="digite seu usuário" autocomplete="off" spellcheck="false">
+        <span class="field-icon">&#9632;</span>
+      </div>
+      <div class="error-msg" id="err-usuario">⚠ CAMPO OBRIGATÓRIO</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Senha</div>
+      <div class="field-wrap">
+        <input type="password" id="senha" placeholder="••••••••" autocomplete="off">
+        <button class="toggle-pw" id="toggle-pw" tabindex="-1" aria-label="Mostrar senha">&#128065;</button>
+      </div>
+      <div class="error-msg" id="err-senha">⚠ CAMPO OBRIGATÓRIO</div>
+      <div class="error-msg" id="err-invalid">⚠ USUÁRIO OU SENHA INVÁLIDOS</div>
+    </div>
+
+    <button class="btn-login" id="btn-login">
+      <span class="btn-text">Acessar Sistema</span>
+      <span class="spinner" id="spinner">AUTENTICANDO<span id="dots"></span></span>
+    </button>
+
+    <div class="card-footer">
+      <span>PCB-SYS v2.4</span>
+      <span class="footer-blink">&#9632; ENCRYPTED</span>
+      <span>2026</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Clock ── */
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+
+    String(n.getMinutes()).padStart(2,'0')+':'+
+    String(n.getSeconds()).padStart(2,'0');
+}
+updateClock();setInterval(updateClock,1000);
+
+/* ── Matrix rain background ── */
+(function(){
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,cols,drops;
+  const chars='PIRACICABANA01アウエイオカキクケコサシスセソタチツテトナニヌネノ0101'.split('');
+  function resize(){
+    W=canvas.width=innerWidth;
+    H=canvas.height=innerHeight;
+    cols=Math.floor(W/18);
+    drops=Array(cols).fill(1);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  setInterval(()=>{
+    ctx.fillStyle='rgba(0,0,0,.055)';
+    ctx.fillRect(0,0,W,H);
+    ctx.font='13px Share Tech Mono, monospace';
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const bright=Math.random()>.92;
+      ctx.fillStyle=bright?'#afffcf':( Math.random()>.6?'#00ff41':'#003a0f');
+      ctx.fillText(ch,i*18,y*18);
+      if(y*18>H&&Math.random()>.975) drops[i]=0;
+      drops[i]++;
+    });
+  },55);
+})();
+
+/* ── Toggle password ── */
+const pwInput=document.getElementById('senha');
+const toggleBtn=document.getElementById('toggle-pw');
+toggleBtn.addEventListener('click',()=>{
+  const show=pwInput.type==='password';
+  pwInput.type=show?'text':'password';
+  toggleBtn.textContent=show?'🙈':'👁';
+});
+
+/* ── Dots animation ── */
+let dotsI=0;
+setInterval(()=>{
+  document.getElementById('dots').textContent=['.','..','...',''][dotsI++%4];
+},400);
+
+/* ── Login logic ── */
+const btn=document.getElementById('btn-login');
+const card=document.getElementById('card');
+
+function clearErrors(){
+  document.querySelectorAll('.error-msg').forEach(e=>{
+    e.classList.remove('show');
+  });
+}
+
+btn.addEventListener('click',login);
+document.addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+function login(){
+  clearErrors();
+  const user=document.getElementById('usuario').value.trim();
+  const pass=document.getElementById('senha').value;
+  let valid=true;
+
+  if(!user){
+    document.getElementById('err-usuario').classList.add('show');
+    document.getElementById('usuario').classList.add('glitch');
+    setTimeout(()=>document.getElementById('usuario').classList.remove('glitch'),400);
+    valid=false;
+  }
+  if(!pass){
+    document.getElementById('err-senha').classList.add('show');
+    valid=false;
+  }
+  if(!valid)return;
+
+  /* loading state */
+  btn.classList.add('loading');
+  btn.disabled=true;
+
+  setTimeout(()=>{
+    /* success for any non-empty username and password */
+    card.classList.add('success-flash');
+    setTimeout(()=>{
+      window.location.href='piracicabana-mapa.html';
+    },900);
+  },1600);
+}
+</script>
+</body>
+</html>
