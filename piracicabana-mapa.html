@@ -32,6 +32,7 @@
   .hint-inner span { color: #00ff4166; margin: 0 8px; }
   .highlight-ring { pointer-events:none; animation:ring-pulse 1.6s ease-in-out infinite; }
   @keyframes ring-pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  @keyframes arrow-pulse { 0%, 100% { transform: translateY(0px) scaleY(1); opacity: 1; } 50% { transform: translateY(-4px) scaleY(0.9); opacity: 0.7; } }
   #nav-bar { position:fixed; bottom:42px; left:50%; transform:translateX(-50%); display:none; align-items:center; gap:12px; background:rgba(0,0,0,.92); border:1px solid #00ff4155; border-radius:3px; padding:8px 16px; z-index:100; }
   #nav-bar button { background:none; border:none; color:#00ff41; font-size:22px; cursor:pointer; padding:6px 12px; min-width:44px; min-height:44px; border-radius:2px; touch-action:manipulation; }
   #nav-bar button:active { background:#00ff4122; }
@@ -486,6 +487,8 @@ function clearHighlight() {
 function highlightItem(item) {
   clearHighlight();
   const { x, y, width, height } = item.bbox;
+  
+  // Criar retângulo de destaque
   const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   rect.setAttribute('x', x - 6);
   rect.setAttribute('y', y - height * 0.65);
@@ -498,6 +501,24 @@ function highlightItem(item) {
   rect.setAttribute('fill', 'none');
   rect.classList.add('highlight-ring');
   highlightLayer.appendChild(rect);
+  
+  // Criar seta em cima do local
+  const arrowGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  arrowGroup.setAttribute('class', 'arrow-marker');
+  
+  const arrowX = x + width / 2;
+  const arrowY = y - height * 0.8;
+  
+  // Triângulo da seta
+  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  polygon.setAttribute('points', `${arrowX},${arrowY - 8} ${arrowX - 6},${arrowY + 4} ${arrowX + 6},${arrowY + 4}`);
+  polygon.setAttribute('fill', '#00ff41');
+  polygon.setAttribute('stroke', '#00ff41');
+  polygon.setAttribute('stroke-width', '0.5');
+  polygon.style.animation = 'arrow-pulse 1.2s ease-in-out infinite';
+  
+  arrowGroup.appendChild(polygon);
+  highlightLayer.appendChild(arrowGroup);
 }
 
 function updateNav() {
@@ -512,6 +533,60 @@ function showResultDetails(item) {
   respCard.classList.add('visible');
 }
 
+function panToItem(item) {
+  // Obter bounding box do item no SVG
+  const { x, y, width, height } = item.bbox;
+  
+  // Centro do item
+  const itemCenterX = x + width / 2;
+  const itemCenterY = y + height / 2;
+  
+  // Centro da tela
+  const screenCenterX = innerWidth / 2;
+  const screenCenterY = innerHeight / 2;
+  
+  // Calcular zoom apropriado (ampliar 2.5x ou ajustar ao tamanho da tela)
+  const padding = 60;
+  const targetScale = Math.min(
+    (innerWidth - padding) / (width + 40),
+    (innerHeight - padding) / (height + 40),
+    3 // máximo de 3x zoom
+  );
+  const newScale = Math.max(0.5, Math.min(5, targetScale));
+  
+  // Calcular translação necessária para centralizar o item com o novo zoom
+  const newTx = screenCenterX - itemCenterX * newScale;
+  const newTy = screenCenterY - itemCenterY * newScale;
+  
+  // Animar a transição
+  const duration = 600; // ms
+  const startTx = tx;
+  const startTy = ty;
+  const startScale = s;
+  const startTime = performance.now();
+  
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+  
+  function animateToItem(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeProgress = easeInOutCubic(progress);
+    
+    tx = startTx + (newTx - startTx) * easeProgress;
+    ty = startTy + (newTy - startTy) * easeProgress;
+    s = startScale + (newScale - startScale) * easeProgress;
+    apply();
+    
+    if (progress < 1) {
+      requestAnimationFrame(animateToItem);
+    }
+  }
+  
+  requestAnimationFrame(animateToItem);
+}
+
 function selectResult(index) {
   if (index < 0 || index >= matches.length) return;
   currentIndex = index;
@@ -522,6 +597,7 @@ function selectResult(index) {
   updateNav();
   highlightItem(matches[index]);
   showResultDetails(matches[index]);
+  panToItem(matches[index]);
 }
 
 function renderResults() {
@@ -550,6 +626,10 @@ function renderResults() {
     row.className = 'result-item';
     row.textContent = item.text;
     row.addEventListener('click', () => selectResult(idx));
+    row.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      selectResult(idx);
+    });
     resultsEl.appendChild(row);
     item.resultEl = row;
   });
@@ -580,15 +660,32 @@ function clearSearch() {
 }
 
 clearBtn.addEventListener('click', clearSearch);
+clearBtn.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  clearSearch();
+});
 input.addEventListener('input', updateSearch);
-navPrev.addEventListener('click', () => {
+
+const handlePrev = () => {
   if (!matches.length) return;
   selectResult((currentIndex - 1 + matches.length) % matches.length);
-});
-navNext.addEventListener('click', () => {
+};
+const handleNext = () => {
   if (!matches.length) return;
   selectResult((currentIndex + 1) % matches.length);
+};
+
+navPrev.addEventListener('click', handlePrev);
+navPrev.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  handlePrev();
 });
+navNext.addEventListener('click', handleNext);
+navNext.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  handleNext();
+});
+
 addEventListener('keydown', e => {
   if (e.key === 'Escape') clearSearch();
 });
